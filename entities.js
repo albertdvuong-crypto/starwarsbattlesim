@@ -9,10 +9,10 @@ function createHeavyWeapon() {
     return { damage: 50, cooldown: 1500, range: 500, speed: 10, color: '#e74c3c', radius: 3, priorities: ['StarDestroyer', 'DeathStar', 'StarkillerBase', 'Planet', 'TIEFighter'], lastFired: Date.now() - Math.random() * 1500 };
 }
 function createDSSuperlaser() {
-    return { damage: 20000, cooldown: 30000, range: 1000, speed: 11, color: '#2ecc71', radius: 8, priorities: ['DeathStar', 'StarkillerBase', 'Planet', 'StarDestroyer', 'TIEFighter'], lastFired: Date.now() - Math.random() * 12000 };
+    return { damage: 20000, cooldown: 30000, range: 5000, speed: 11, color: '#2ecc71', radius: 8, priorities: ['DeathStar', 'StarkillerBase', 'Planet', 'StarDestroyer', 'TIEFighter'], lastFired: Date.now() - Math.random() * 12000 };
 }
 function createSKBSuperlaser() {
-    return { damage: 40000, cooldown: 60000, range: 1500, speed: 12, color: 'red', radius: 16, priorities: ['DeathStar', 'StarkillerBase', 'Planet', 'StarDestroyer', 'TIEFighter'], lastFired: Date.now() - Math.random() * 20000 };
+    return { damage: 40000, cooldown: 60000, range: 7500, speed: 12, color: 'red', radius: 16, priorities: ['DeathStar', 'StarkillerBase', 'Planet', 'StarDestroyer', 'TIEFighter'], lastFired: Date.now() - Math.random() * 20000 };
 }
 
 class Projectile {
