@@ -7,6 +7,23 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div id="advanced-stats" class="hidden">
+        <div class="stat-col purple-stats">
+            <strong>Team Purple</strong>
+            <div>TIEs: <span id="p-tie-c">0</span> / 750</div>
+            <div>SDs: <span id="p-sd-c">0</span> / 50</div>
+            <div>DSs: <span id="p-ds-c">0</span></div>
+            <div>SKBs: <span id="p-skb-c">0</span></div>
+        </div>
+        <div class="stat-col brown-stats">
+            <strong>Team Brown</strong>
+            <div>TIEs: <span id="b-tie-c">0</span> / 750</div>
+            <div>SDs: <span id="b-sd-c">0</span> / 50</div>
+            <div>DSs: <span id="b-ds-c">0</span></div>
+            <div>SKBs: <span id="b-skb-c">0</span></div>
+        </div>
+    </div>
+
     <div id="ui-container">
         <h1>Galactic Simulator</h1>
         
@@ -48,8 +65,8 @@
 
         <div id="stats" class="hidden">
             <p><strong>Mode:</strong> <span id="mode-display">Deep Space Battle</span></p>
-            <p><strong>Purple Fleet:</strong> <span id="count-purple">0</span></p>
-            <p><strong>Brown Fleet:</strong> <span id="count-brown">0</span></p>
+            <p><strong>Purple Fleet Total:</strong> <span id="count-purple">0</span></p>
+            <p><strong>Brown Fleet Total:</strong> <span id="count-brown">0</span></p>
         </div>
     </div>
     
