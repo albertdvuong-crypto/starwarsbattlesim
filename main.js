@@ -16,6 +16,8 @@ const setupPanel = document.getElementById('setup-panel');
 const btnModify = document.getElementById('btn-modify');
 const planetSetup = document.getElementById('planet-setup');
 const planetTeamSelect = document.getElementById('planet-team');
+const stats = document.getElementById('stats');
+const advancedStats = document.getElementById('advanced-stats');
 
 function resizeCanvas() {
     width = window.innerWidth;
@@ -69,8 +71,10 @@ function getSpawnCoords(team) {
 function spawnFleet(team, prefix) {
     let skbCount = currentMode === 'A' ? parseInt(document.getElementById(`${prefix}-skb`).value) : 0;
     let dsCount = currentMode === 'A' ? parseInt(document.getElementById(`${prefix}-ds`).value) : 0;
-    let sdCount = parseInt(document.getElementById(`${prefix}-sd`).value);
-    let tieCount = parseInt(document.getElementById(`${prefix}-tie`).value);
+    
+    // Enforce base limits on initial spawn too just in case user typed large numbers
+    let sdCount = Math.min(parseInt(document.getElementById(`${prefix}-sd`).value), 50);
+    let tieCount = Math.min(parseInt(document.getElementById(`${prefix}-tie`).value), 750);
 
     if (currentMode === 'B') sdCount = Math.min(sdCount, 10);
 
@@ -109,6 +113,7 @@ btnRun.addEventListener('click', () => {
     uiContainer.classList.add('minimized');
     btnModify.classList.remove('hidden');
     stats.classList.remove("hidden");
+    advancedStats.classList.remove("hidden");
     
     if (!simRunning) {
         simRunning = true;
@@ -121,6 +126,7 @@ btnModify.addEventListener('click', () => {
     setupPanel.classList.remove('hidden');
     btnModify.classList.add('hidden');
     stats.classList.add("hidden");
+    advancedStats.classList.add("hidden");
 });
 
 function animate() {
@@ -134,60 +140,87 @@ function animate() {
     const centerX = planet ? planet.x : width / 2;
     const centerY = planet ? planet.y : height / 2;
 
+    // Filter out inactive entities first
     entities = entities.filter(e => e.active);
     
-    let purpleCount = 0; let brownCount = 0;
+    let purpleTotal = 0; 
+    let brownTotal = 0;
+
+    // Initialize counts for accurate limiting and UI
+    let counts = {
+        Purple: { TIEFighter: 0, StarDestroyer: 0, DeathStar: 0, StarkillerBase: 0, Planet: 0 },
+        Brown: { TIEFighter: 0, StarDestroyer: 0, DeathStar: 0, StarkillerBase: 0, Planet: 0 }
+    };
+
+    // Pre-calculate current totals to enforce limits properly
+    for (let entity of entities) {
+        if (entity.team === 'Purple') purpleTotal++;
+        else brownTotal++;
+        counts[entity.team][entity.constructor.name]++;
+    }
 
     // PHASE 1: Spawning and Movement
     for (let entity of entities) {
-        if (entity.team === 'Purple') purpleCount++;
-        else brownCount++;
-
         let now = Date.now();
 
-        // Star Destroyers passively spawn 2 TIEs every 3 seconds
+        // Star Destroyers passively spawn 2 TIEs every 3 seconds (Limit: 750)
         if (entity instanceof StarDestroyer) {
             if (now - entity.lastSpawn > 30000) {
-                for (let i = 0; i < 10; i++) {
+                let toSpawn = Math.min(10, 750 - counts[entity.team].TIEFighter);
+                for (let i = 0; i < toSpawn; i++) {
                     entities.push(new TIEFighter(entity.x, entity.y, entity.team, currentMode));
+                    counts[entity.team].TIEFighter++;
                 }
                 entity.lastSpawn = now;
             }
         } 
 
-        // Death Stars passively spawn 10 TIEs every 10s
+        // Death Stars passively spawn 10 TIEs (Limit 750) & 2 SDs (Limit 50) every 10s
         if (entity instanceof DeathStar) {
             if (now - entity.lastSpawn > 60000) {
-                for (let i = 0; i < 20; i++) {
+                let tiesToSpawn = Math.min(20, 750 - counts[entity.team].TIEFighter);
+                for (let i = 0; i < tiesToSpawn; i++) {
                     entities.push(new TIEFighter(entity.x, entity.y, entity.team, currentMode));
+                    counts[entity.team].TIEFighter++;
                 }
-                for (let i = 0; i < 2; i++) {
+                let sdsToSpawn = Math.min(2, 50 - counts[entity.team].StarDestroyer);
+                for (let i = 0; i < sdsToSpawn; i++) {
                     entities.push(new StarDestroyer(entity.x, entity.y, entity.team, currentMode));
+                    counts[entity.team].StarDestroyer++;
                 }
                 entity.lastSpawn = now;
             }
         } 
 
-        // Starkiller Bases passively spawn 30 TIEs every 20 seconds
+        // Starkiller Bases passively spawn 50 TIEs & 5 SDs every 20 seconds
         if (entity instanceof StarkillerBase) {
             if (now - entity.lastSpawn > 60000) {
-                for (let i = 0; i < 50; i++) {
+                let tiesToSpawn = Math.min(50, 750 - counts[entity.team].TIEFighter);
+                for (let i = 0; i < tiesToSpawn; i++) {
                     entities.push(new TIEFighter(entity.x, entity.y, entity.team, currentMode));
+                    counts[entity.team].TIEFighter++;
                 }
-                for (let i = 0; i < 5; i++) {
+                let sdsToSpawn = Math.min(5, 50 - counts[entity.team].StarDestroyer);
+                for (let i = 0; i < sdsToSpawn; i++) {
                     entities.push(new StarDestroyer(entity.x, entity.y, entity.team, currentMode));
+                    counts[entity.team].StarDestroyer++;
                 }
                 entity.lastSpawn = now;
             }
         }
 
+        // Planets passively spawn 100 TIEs & 2 SDs
         if (entity instanceof Planet) {
             if (now - entity.lastSpawn > 60000) {
-                for (let i = 0; i < 100; i++) {
+                let tiesToSpawn = Math.min(100, 750 - counts[entity.team].TIEFighter);
+                for (let i = 0; i < tiesToSpawn; i++) {
                     entities.push(new TIEFighter(entity.x, entity.y, entity.team, currentMode));
+                    counts[entity.team].TIEFighter++;
                 }
-                for (let i = 0; i < 2; i++) {
+                let sdsToSpawn = Math.min(2, 50 - counts[entity.team].StarDestroyer);
+                for (let i = 0; i < sdsToSpawn; i++) {
                     entities.push(new StarDestroyer(entity.x, entity.y, entity.team, currentMode));
+                    counts[entity.team].StarDestroyer++;
                 }
                 entity.lastSpawn = now;
             }
@@ -225,10 +258,22 @@ function animate() {
         }
     }
 
+    // UPDATE UI COUNTS
     if (!uiContainer.classList.contains('minimized')) {
-        document.getElementById('count-purple').innerText = purpleCount;
-        document.getElementById('count-brown').innerText = brownCount;
+        document.getElementById('count-purple').innerText = purpleTotal;
+        document.getElementById('count-brown').innerText = brownTotal;
     }
+    
+    // Update the Advanced Stats specific counters
+    document.getElementById('p-tie-c').innerText = counts.Purple.TIEFighter;
+    document.getElementById('p-sd-c').innerText = counts.Purple.StarDestroyer;
+    document.getElementById('p-ds-c').innerText = counts.Purple.DeathStar;
+    document.getElementById('p-skb-c').innerText = counts.Purple.StarkillerBase;
+    
+    document.getElementById('b-tie-c').innerText = counts.Brown.TIEFighter;
+    document.getElementById('b-sd-c').innerText = counts.Brown.StarDestroyer;
+    document.getElementById('b-ds-c').innerText = counts.Brown.DeathStar;
+    document.getElementById('b-skb-c').innerText = counts.Brown.StarkillerBase;
 
     requestAnimationFrame(animate);
 }
