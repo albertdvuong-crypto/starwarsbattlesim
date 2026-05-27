@@ -226,8 +226,8 @@ class StarDestroyer extends Entity {
         } else {
             // Mode A: Deep Space Battle. Drift towards center to engage enemy fleet.
             if (dist > 0) {
-                this.vx += (dx / dist) * 0.005; 
-                this.vy += (dy / dist) * 0.005;
+                this.vx += (dx / dist) * 0.000001; 
+                this.vy += (dy / dist) * 0.000001;
             }
         }
 
@@ -300,8 +300,8 @@ class TIEFighter extends Entity {
         } else {
             // Mode A: Deep Space Battle. Swarm towards the center to fight.
             if (dist > 0) {
-                this.vx += (dx / dist) * 0.01;
-                this.vy += (dy / dist) * 0.01;
+                this.vx += (dx / dist) * 0.05;
+                this.vy += (dy / dist) * 0.05;
             }
         }
         
