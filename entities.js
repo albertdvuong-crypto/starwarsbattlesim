@@ -123,7 +123,7 @@ class Planet extends Entity {
         this.maxHealth = 10000; this.health = this.maxHealth;
         this.maxShield = 10000; this.shield = this.maxShield;
         
-        for(let i=0; i<1; i++) this.weapons.push(createHeavyWeapon());
+        for(let i=0; i<10; i++) this.weapons.push(createHeavyWeapon());
 
         this.lastSpawn = Date.now(); 
     }
