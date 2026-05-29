@@ -10,17 +10,17 @@
     <div id="advanced-stats" class="hidden">
         <div class="stat-col purple-stats">
             <strong>Team Purple</strong>
-            <div>TIEs: <span id="p-tie-c">0</span> / 750</div>
+            <div>TIEs: <span id="p-tie-c">0</span> / 500</div>
             <div>SDs: <span id="p-sd-c">0</span> / 50</div>
-            <div>DSs: <span id="p-ds-c">0</span></div>
-            <div>SKBs: <span id="p-skb-c">0</span></div>
+            <div>DSs: <span id="p-ds-c">0</span> / 5</div>
+            <div>SKBs: <span id="p-skb-c">0</span> / 2</div>
         </div>
         <div class="stat-col brown-stats">
             <strong>Team Brown</strong>
-            <div>TIEs: <span id="b-tie-c">0</span> / 750</div>
+            <div>TIEs: <span id="b-tie-c">0</span> / 500</div>
             <div>SDs: <span id="b-sd-c">0</span> / 50</div>
-            <div>DSs: <span id="b-ds-c">0</span></div>
-            <div>SKBs: <span id="b-skb-c">0</span></div>
+            <div>DSs: <span id="b-ds-c">0</span> / 5</div>
+            <div>SKBs: <span id="b-skb-c">0</span> / 2</div>
         </div>
     </div>
 
@@ -44,18 +44,18 @@
 
             <div class="team-setup purple-team">
                 <h3>Team Purple (Left)</h3>
-                <label>Starkiller Bases: <input type="number" id="p-skb" value="1" min="0" max="5"></label>
-                <label>Death Stars: <input type="number" id="p-ds" value="2" min="0" max="10"></label>
-                <label>Star Destroyers: <input type="number" id="p-sd" value="10" min="0" max="50"></label>
-                <label>TIE Fighters: <input type="number" id="p-tie" value="50" min="0" max="200"></label>
+                <label>Starkiller Bases: <input type="number" id="p-skb" value="0" min="0" max="2"></label>
+                <label>Death Stars: <input type="number" id="p-ds" value="0" min="0" max="5"></label>
+                <label>Star Destroyers: <input type="number" id="p-sd" value="0" min="0" max="50"></label>
+                <label>TIE Fighters: <input type="number" id="p-tie" value="0" min="0" max="200"></label>
             </div>
             
             <div class="team-setup brown-team">
                 <h3>Team Brown (Right)</h3>
                 <label>Starkiller Bases: <input type="number" id="b-skb" value="0" min="0" max="5"></label>
-                <label>Death Stars: <input type="number" id="b-ds" value="3" min="0" max="10"></label>
-                <label>Star Destroyers: <input type="number" id="b-sd" value="15" min="0" max="50"></label>
-                <label>TIE Fighters: <input type="number" id="b-tie" value="70" min="0" max="200"></label>
+                <label>Death Stars: <input type="number" id="b-ds" value="0" min="0" max="10"></label>
+                <label>Star Destroyers: <input type="number" id="b-sd" value="0" min="0" max="50"></label>
+                <label>TIE Fighters: <input type="number" id="b-tie" value="0" min="0" max="200"></label>
             </div>
             
             <button id="btn-run">INITIATE BATTLE</button>
