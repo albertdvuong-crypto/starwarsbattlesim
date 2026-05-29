@@ -74,7 +74,7 @@ function spawnFleet(team, prefix) {
     
     // Enforce base limits on initial spawn too just in case user typed large numbers
     let sdCount = Math.min(parseInt(document.getElementById(`${prefix}-sd`).value), 50);
-    let tieCount = Math.min(parseInt(document.getElementById(`${prefix}-tie`).value), 500);
+    let tieCount = Math.min(parseInt(document.getElementById(`${prefix}-tie`).value), 200);
 
     if (currentMode === 'B') sdCount = Math.min(sdCount, 10);
 
@@ -166,7 +166,7 @@ function animate() {
         // Star Destroyers passively spawn 2 TIEs every 3 seconds (Limit: 750)
         if (entity instanceof StarDestroyer) {
             if (now - entity.lastSpawn > 30000) {
-                let toSpawn = Math.min(10, 500 - counts[entity.team].TIEFighter);
+                let toSpawn = Math.min(10, 200 - counts[entity.team].TIEFighter);
                 for (let i = 0; i < toSpawn; i++) {
                     entities.push(new TIEFighter(entity.x, entity.y, entity.team, currentMode));
                     counts[entity.team].TIEFighter++;
@@ -178,7 +178,7 @@ function animate() {
         // Death Stars passively spawn 10 TIEs (Limit 750) & 2 SDs (Limit 50) every 10s
         if (entity instanceof DeathStar) {
             if (now - entity.lastSpawn > 60000) {
-                let tiesToSpawn = Math.min(20, 500 - counts[entity.team].TIEFighter);
+                let tiesToSpawn = Math.min(20, 200 - counts[entity.team].TIEFighter);
                 for (let i = 0; i < tiesToSpawn; i++) {
                     entities.push(new TIEFighter(entity.x, entity.y, entity.team, currentMode));
                     counts[entity.team].TIEFighter++;
@@ -195,7 +195,7 @@ function animate() {
         // Starkiller Bases passively spawn 50 TIEs & 5 SDs every 20 seconds
         if (entity instanceof StarkillerBase) {
             if (now - entity.lastSpawn > 60000) {
-                let tiesToSpawn = Math.min(50, 500 - counts[entity.team].TIEFighter);
+                let tiesToSpawn = Math.min(50, 200 - counts[entity.team].TIEFighter);
                 for (let i = 0; i < tiesToSpawn; i++) {
                     entities.push(new TIEFighter(entity.x, entity.y, entity.team, currentMode));
                     counts[entity.team].TIEFighter++;
@@ -212,7 +212,7 @@ function animate() {
         // Planets passively spawn 100 TIEs & 2 SDs
         if (entity instanceof Planet) {
             if (now - entity.lastSpawn > 60000) {
-                let tiesToSpawn = Math.min(100, 500 - counts[entity.team].TIEFighter);
+                let tiesToSpawn = Math.min(100, 200 - counts[entity.team].TIEFighter);
                 for (let i = 0; i < tiesToSpawn; i++) {
                     entities.push(new TIEFighter(entity.x, entity.y, entity.team, currentMode));
                     counts[entity.team].TIEFighter++;
