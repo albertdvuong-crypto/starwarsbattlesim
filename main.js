@@ -102,8 +102,8 @@ btnRun.addEventListener('click', () => {
     
     if (currentMode === 'B') {
         const planetTeam = planetTeamSelect.value;
-        const planetX = planetTeam === 'Purple' ? width / 4 : (width / 4) * 3;
-        entities.push(new Planet(width / 2, height / 2, planetTeam));
+        const planetX = planetTeam === 'Purple' ? width / 3 : (width / 3) * 2;
+        entities.push(new Planet(planetX, height / 2, planetTeam));
     }
 
     spawnFleet('Purple', 'p');
