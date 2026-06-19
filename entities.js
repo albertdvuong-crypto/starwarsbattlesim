@@ -225,10 +225,6 @@ class StarDestroyer extends Entity {
     update(width, height, isDefendingOrbit, centerX, centerY, allEntities) {
         this.regenerateShields();
         
-        // Apply slight drag/friction to prevent permanent force lockups
-        this.vx *= 0.98;
-        this.vy *= 0.98;
-        
         // 4. Kamikaze Strategy Trigger
         if (this.health < this.maxHealth * 0.35 && this.shield <= 0) {
             this.isKamikaze = true;
@@ -246,8 +242,6 @@ class StarDestroyer extends Entity {
         this.broadsideLock = false;
         let speedCap = this.isKamikaze ? 2.5 : 1.2;
 
-        let currentShieldPct = this.maxShield > 0 ? (this.shield / this.maxShield) : 0;
-
         if (this.isKamikaze) {
             // Kamikaze Maneuver: Ignore everything, ram biggest enemy
             let target = enemies.find(e => e instanceof Planet || e instanceof StarkillerBase || e instanceof DeathStar) || enemies[0];
@@ -256,21 +250,6 @@ class StarDestroyer extends Entity {
                 let dist = Math.hypot(dx, dy);
                 this.vx += (dx / dist) * 0.05;
                 this.vy += (dy / dist) * 0.05;
-            }
-        } else if (currentShieldPct < 0.6) {
-            // Tactical Retreat: Return to sides if shields are below 60%
-            let retreatX = (this.team === 'Purple') ? width * 0.15 : width * 0.85;
-            let dx = retreatX - this.x;
-            
-            // Fixed: Added horizontal deadzone to prevent jittering
-            if (Math.abs(dx) > 10) {
-                this.vx += Math.sign(dx) * 0.015;
-            }
-            
-            // Fixed: Guide ship toward center Y so it doesn't freeze vertically
-            let dy = (height / 2) - this.y;
-            if (Math.abs(dy) > 10) {
-                this.vy += Math.sign(dy) * 0.01;
             }
         } else if (this.role === 'escort' && this.escortTarget) {
             // 2. Guard & Escort Duty
@@ -322,17 +301,7 @@ class StarDestroyer extends Entity {
             } else {
                 // Standard tactical push
                 let sideDx = targetX - this.x;
-                
-                // Fixed: Added horizontal deadzone to prevent jittering
-                if (Math.abs(sideDx) > 10) {
-                    this.vx += Math.sign(sideDx) * 0.008;
-                }
-                
-                // Fixed: Added vertical awareness towards the action center
-                let sideDy = centerY - this.y;
-                if (Math.abs(sideDy) > 10) {
-                    this.vy += Math.sign(sideDy) * 0.005;
-                }
+                this.vx += Math.sign(sideDx) * 0.008;
             }
         }
 
@@ -415,6 +384,7 @@ class StarDestroyer extends Entity {
         this.drawBars(ctx, this.width + 10);
     }
 }
+
 class TIEFighter extends Entity {
     constructor(x, y, team, mode) {
         super(x, y, team);
