@@ -235,22 +235,6 @@ class StarDestroyer extends Entity {
         let dx = centerX - this.x; let dy = centerY - this.y;
         let dist = Math.hypot(dx, dy);
 
-        // --- Tactical Shield-Based Positioning ---
-        let shieldPercent = this.maxShield > 0 ? (this.shield / this.maxShield) : 0;
-        let targetX = centerX;
-
-        if (this.team === 'Purple') {
-            // Purple's own side is left (25% mark), enemy side is right (75% mark)
-            targetX = (shieldPercent >= 0.4) ? width * 0.75 : width * 0.25;
-        } else {
-            // Brown's own side is right (75% mark), enemy side is left (25% mark)
-            targetX = (shieldPercent >= 0.4) ? width * 0.25 : width * 0.75;
-        }
-
-        // Apply a smooth horizontal tracking force toward the designated side
-        let sideDx = targetX - this.x;
-        this.vx += Math.sign(sideDx) * 0.02;
-
         if (this.mode === 'B') {
             if (isDefendingOrbit) {
                 if (dist > 0) {
@@ -268,11 +252,21 @@ class StarDestroyer extends Entity {
                 }
             }
         } else {
-            // Mode A: Deep Space Battle. Drift towards center to engage enemy fleet.
-            if (dist > 0) {
-                this.vx += (dx / dist) * 0.000001; 
-                this.vy += (dy / dist) * 0.000001;
+            // --- Tactical Shield-Based Positioning ---
+            let shieldPercent = this.maxShield > 0 ? (this.shield / this.maxShield) : 0;
+            let targetX = centerX;
+            
+            if (this.team === 'Purple') {
+                // Purple's own side is left (25% mark), enemy side is right (75% mark)
+                targetX = (shieldPercent >= 0.4) ? width * 0.75 : width * 0.25;
+            } else {
+                // Brown's own side is right (75% mark), enemy side is left (25% mark)
+                targetX = (shieldPercent >= 0.4) ? width * 0.25 : width * 0.75;
             }
+    
+            // Apply a smooth horizontal tracking force toward the designated side
+            let sideDx = targetX - this.x;
+            this.vx += Math.sign(sideDx) * 0.02;
         }
 
         // Avoid crashing into other large capital ships
