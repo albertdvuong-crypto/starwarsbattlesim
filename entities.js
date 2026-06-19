@@ -284,10 +284,10 @@ class StarDestroyer extends Entity {
             // Mode A Logic: Flanking vs Brawling
             let shieldPercent = this.maxShield > 0 ? (this.shield / this.maxShield) : 0;
             let targetX = (this.team === 'Purple') ? 
-                          (shieldPercent >= 0.4 ? width * 0.75 : width * 0.25) : 
-                          (shieldPercent >= 0.4 ? width * 0.25 : width * 0.75);
+                          (shieldPercent >= 0.67 ? width * 0.75 : width * 0.25) : 
+                          (shieldPercent >= 0.67 ? width * 0.25 : width * 0.75);
             
-            if (this.role === 'flanker' && shieldPercent >= 0.4) {
+            if (this.role === 'flanker' && shieldPercent >= 0.67) {
                 // 1. The "Flanking" Pack
                 let targetY = this.flankY;
                 let dx = targetX - this.x; let dy = targetY - this.y;
@@ -317,8 +317,8 @@ class StarDestroyer extends Entity {
                 let strafeVx = -dy / dist;
                 let strafeVy = dx / dist;
                 
-                this.vx += strafeVx * 0.02;
-                this.vy += strafeVy * 0.02;
+                this.vx += strafeVx * 0.008;
+                this.vy += strafeVy * 0.008;
                 
                 // Lock visual angle to point side-guns at enemy (perpendicular to movement)
                 let targetAngle = Math.atan2(dy, dx) + Math.PI / 2; 
@@ -328,7 +328,7 @@ class StarDestroyer extends Entity {
                 let angleDiff = targetAngle - this.angle;
                 // Normalize angle to -PI to PI for smooth turning
                 angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
-                this.angle += angleDiff * 0.1; 
+                this.angle += angleDiff * 0.02; 
             }
         }
 
