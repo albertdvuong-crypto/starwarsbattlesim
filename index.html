@@ -7,23 +7,6 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="advanced-stats" class="hidden">
-        <div class="stat-col purple-stats">
-            <strong>Team Purple</strong>
-            <div>TIEs: <span id="p-tie-c">0</span> / 200</div>
-            <div>SDs: <span id="p-sd-c">0</span> / 50</div>
-            <div>DSs: <span id="p-ds-c">0</span> / 5</div>
-            <div>SKBs: <span id="p-skb-c">0</span> / 2</div>
-        </div>
-        <div class="stat-col brown-stats">
-            <strong>Team Brown</strong>
-            <div>TIEs: <span id="b-tie-c">0</span> / 200</div>
-            <div>SDs: <span id="b-sd-c">0</span> / 50</div>
-            <div>DSs: <span id="b-ds-c">0</span> / 5</div>
-            <div>SKBs: <span id="b-skb-c">0</span> / 2</div>
-        </div>
-    </div>
-
     <div id="ui-container">
         <h1>Galactic Simulator</h1>
         
@@ -38,36 +21,72 @@
                     <select id="planet-team">
                         <option value="Purple">Team Purple</option>
                         <option value="Brown">Team Brown</option>
+                        <option value="Pink">Team Pink</option>
+                        <option value="LightBrown">Team Light Brown</option>
                     </select>
                 </label>
             </div>
 
-            <div class="team-setup purple-team">
-                <h3>Team Purple (Left)</h3>
-                <label>Starkiller Bases: <input type="number" id="p-skb" value="0" min="0" max="2"></label>
-                <label>Death Stars: <input type="number" id="p-ds" value="0" min="0" max="5"></label>
-                <label>Star Destroyers: <input type="number" id="p-sd" value="0" min="0" max="50"></label>
-                <label>TIE Fighters: <input type="number" id="p-tie" value="0" min="0" max="200"></label>
+            <div class="team-setup" style="border-left: 4px solid #9b59b6;">
+                <h3><input type="checkbox" id="active-purple" class="team-toggle" checked> Team Purple</h3>
+                <label>Alliance: 
+                    <select id="alliance-purple">
+                        <option value="1">Side 1</option>
+                        <option value="2">Side 2</option>
+                    </select>
+                </label>
+                <label>Starkiller Bases: <input type="number" id="purple-skb" value="0" min="0"></label>
+                <label>Death Stars: <input type="number" id="purple-ds" value="0" min="0"></label>
+                <label>Star Destroyers: <input type="number" id="purple-sd" value="0" min="0"></label>
+                <label>TIE Fighters: <input type="number" id="purple-tie" value="0" min="0"></label>
             </div>
             
-            <div class="team-setup brown-team">
-                <h3>Team Brown (Right)</h3>
-                <label>Starkiller Bases: <input type="number" id="b-skb" value="0" min="0" max="2"></label>
-                <label>Death Stars: <input type="number" id="b-ds" value="0" min="0" max="5"></label>
-                <label>Star Destroyers: <input type="number" id="b-sd" value="0" min="0" max="50"></label>
-                <label>TIE Fighters: <input type="number" id="b-tie" value="0" min="0" max="200"></label>
+            <div class="team-setup" style="border-left: 4px solid #a0522d;">
+                <h3><input type="checkbox" id="active-brown" class="team-toggle" checked> Team Brown</h3>
+                <label>Alliance: 
+                    <select id="alliance-brown">
+                        <option value="1">Side 1</option>
+                        <option value="2" selected>Side 2</option>
+                    </select>
+                </label>
+                <label>Starkiller Bases: <input type="number" id="brown-skb" value="0" min="0"></label>
+                <label>Death Stars: <input type="number" id="brown-ds" value="0" min="0"></label>
+                <label>Star Destroyers: <input type="number" id="brown-sd" value="0" min="0"></label>
+                <label>TIE Fighters: <input type="number" id="brown-tie" value="0" min="0"></label>
+            </div>
+
+            <div class="team-setup" style="border-left: 4px solid #ffb6c1;">
+                <h3><input type="checkbox" id="active-pink" class="team-toggle"> Team Pink</h3>
+                <label>Alliance: 
+                    <select id="alliance-pink">
+                        <option value="1">Side 1</option>
+                        <option value="2">Side 2</option>
+                    </select>
+                </label>
+                <label>Starkiller Bases: <input type="number" id="pink-skb" value="0" min="0"></label>
+                <label>Death Stars: <input type="number" id="pink-ds" value="0" min="0"></label>
+                <label>Star Destroyers: <input type="number" id="pink-sd" value="0" min="0"></label>
+                <label>TIE Fighters: <input type="number" id="pink-tie" value="0" min="0"></label>
+            </div>
+
+            <div class="team-setup" style="border-left: 4px solid #d2b48c;">
+                <h3><input type="checkbox" id="active-lightbrown" class="team-toggle"> Team Light Brown</h3>
+                <label>Alliance: 
+                    <select id="alliance-lightbrown">
+                        <option value="1">Side 1</option>
+                        <option value="2" selected>Side 2</option>
+                    </select>
+                </label>
+                <label>Starkiller Bases: <input type="number" id="lightbrown-skb" value="0" min="0"></label>
+                <label>Death Stars: <input type="number" id="lightbrown-ds" value="0" min="0"></label>
+                <label>Star Destroyers: <input type="number" id="lightbrown-sd" value="0" min="0"></label>
+                <label>TIE Fighters: <input type="number" id="lightbrown-tie" value="0" min="0"></label>
             </div>
             
             <button id="btn-run">INITIATE BATTLE</button>
         </div>
 
         <button id="btn-modify" class="hidden">Modify Fleet</button>
-
-        <div id="stats" class="hidden">
-            <p><strong>Mode:</strong> <span id="mode-display">Deep Space Battle</span></p>
-            <p><strong>Purple Fleet Total:</strong> <span id="count-purple">0</span></p>
-            <p><strong>Brown Fleet Total:</strong> <span id="count-brown">0</span></p>
-        </div>
     </div>
     
     <canvas id="sim-canvas"></canvas>
