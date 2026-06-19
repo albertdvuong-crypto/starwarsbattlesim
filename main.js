@@ -56,7 +56,7 @@ btnModeB.addEventListener('click', () => toggleMode('B'));
 
 // Helper to spawn ships on the correct side of the screen
 function getSpawnCoords(team) {
-    const edgePadding = 200;   // Distance from the very edge of the screen
+    const edgePadding = 300;   // Distance from the very edge of the screen
     const centerPadding = 300; // Distance from the middle split line
 
     const minX = team === 'Purple' ? edgePadding : width / 2 + centerPadding;
