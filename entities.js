@@ -26,7 +26,7 @@ class Projectile {
     }
     update() {
         this.x += this.vx; this.y += this.vy;
-        let speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy);
+        let speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         this.distanceTraveled += speed;
         if (this.distanceTraveled > this.range) this.active = false;
     }
@@ -46,13 +46,12 @@ class Entity {
         this.weapons = []; this.active = true;
         this.collisionRadius = 10; 
         
-        // Timers for shield regeneration mechanics
         this.lastDamageTime = 0;
         this.lastRegenTime = Date.now();
     }
 
     takeDamage(amount) {
-        this.lastDamageTime = Date.now(); // Record when damage occurs
+        this.lastDamageTime = Date.now(); 
         if (this.shield > 0) {
             this.shield -= amount;
             if (this.shield < 0) {
@@ -71,9 +70,7 @@ class Entity {
         this.lastRegenTime = now;
 
         if (this.maxShield > 0 && this.shield < this.maxShield) {
-            // Only regenerate if no damage has been taken for 3 seconds (3000ms)
             if (now - this.lastDamageTime > 3000) {
-                // Smoothly restores 2% of max shield pool per second
                 let regenAmount = (elapsed / 1000) * (this.maxShield * 0.02);
                 this.shield = Math.min(this.maxShield, this.shield + regenAmount);
             }
@@ -110,7 +107,7 @@ class Entity {
                     
                     projectilesArray.push(new Projectile(this.x, this.y, pVx, pVy, w.damage, this.team, w.color, w.range, w.radius));
                     
-                    if(this instanceof TIEFighter) {
+                    if (this instanceof TIEFighter && !this.broadsideLock) {
                         this.angle = angle; 
                     }
                 }
@@ -142,18 +139,13 @@ class Planet extends Entity {
         this.radius = 140; this.collisionRadius = 140;
         this.maxHealth = 10000; this.health = this.maxHealth;
         this.maxShield = 10000; this.shield = this.maxShield;
-        
         for(let i=0; i<10; i++) this.weapons.push(createHeavyWeapon());
-
         this.lastSpawn = Date.now(); 
     }
-    update() {
-        this.regenerateShields();
-    } 
+    update() { this.regenerateShields(); } 
     draw(ctx) {
         ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.fill();
         ctx.strokeStyle = this.color; 
         ctx.lineWidth = 4; ctx.stroke();
         this.drawBars(ctx, this.radius + 15);
@@ -166,16 +158,12 @@ class StarkillerBase extends Entity {
         this.radius = 90; this.collisionRadius = 90;
         this.maxHealth = 70000; this.health = this.maxHealth;
         this.maxShield = 50000; this.shield = this.maxShield;
-        
         this.weapons.push(createSKBSuperlaser());
         for(let i=0; i<10; i++) this.weapons.push(createHeavyWeapon());
         for(let i=0; i<40; i++) this.weapons.push(createLightWeapon());
-
         this.lastSpawn = Date.now(); 
     }
-    update() {
-        this.regenerateShields();
-    } 
+    update() { this.regenerateShields(); } 
     draw(ctx) {
         ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.color; ctx.fill();
@@ -191,16 +179,12 @@ class DeathStar extends Entity {
         this.radius = 55; this.collisionRadius = 55;
         this.maxHealth = 40000; this.health = this.maxHealth;
         this.maxShield = 20000; this.shield = this.maxShield;
-        
         this.weapons.push(createDSSuperlaser());
         for(let i=0; i<5; i++) this.weapons.push(createHeavyWeapon());
         for(let i=0; i<15; i++) this.weapons.push(createLightWeapon());
-
         this.lastSpawn = Date.now(); 
     }
-    update() {
-        this.regenerateShields();
-    } 
+    update() { this.regenerateShields(); } 
     draw(ctx) {
         ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.color; ctx.fill();
@@ -217,25 +201,70 @@ class StarDestroyer extends Entity {
         this.length = mode === 'A' ? 16 : 35;
         this.width = mode === 'A' ? 10 : 20;
         this.collisionRadius = this.length;
-        
         this.maxHealth = 2000; this.health = this.maxHealth;
         this.maxShield = 1000; this.shield = this.maxShield;
-        
         for(let i=0; i<2; i++) this.weapons.push(createHeavyWeapon());
         for(let i=0; i<10; i++) this.weapons.push(createLightWeapon());
-        
         this.vx = (Math.random() - 0.5);
         this.vy = (Math.random() - 0.5);
         this.lastSpawn = Date.now();
+
+        // AI Strategy Assignments
+        const roll = Math.random();
+        if (roll < 0.25) this.role = 'flanker';
+        else if (roll < 0.5) this.role = 'escort';
+        else this.role = 'brawler';
+
+        this.flankY = Math.random() < 0.5 ? 150 : window.innerHeight - 150; // Target top or bottom edge
+        this.escortTarget = null;
+        this.orbitOffset = Math.random() * Math.PI * 2;
+        this.isKamikaze = false;
+        this.broadsideLock = false; // Used for visual overrides
     }
 
     update(width, height, isDefendingOrbit, centerX, centerY, allEntities) {
         this.regenerateShields();
+        
+        // 4. Kamikaze Strategy Trigger
+        if (this.health < this.maxHealth * 0.05 && this.shield <= 0) {
+            this.isKamikaze = true;
+        }
 
-        let dx = centerX - this.x; let dy = centerY - this.y;
-        let dist = Math.hypot(dx, dy);
+        let enemies = allEntities.filter(e => e.team !== this.team && e.active);
+        let allies = allEntities.filter(e => e.team === this.team && e.active && (e instanceof DeathStar || e instanceof StarkillerBase || e instanceof Planet));
 
-        if (this.mode === 'B') {
+        // Find Escort Target if assigned
+        if (this.role === 'escort' && !this.escortTarget && allies.length > 0) {
+            this.escortTarget = allies[Math.floor(Math.random() * allies.length)];
+        }
+        if (this.escortTarget && !this.escortTarget.active) this.escortTarget = null; // Re-assign if dead
+
+        this.broadsideLock = false;
+        let speedCap = this.isKamikaze ? 2.5 : 1.2;
+
+        if (this.isKamikaze) {
+            // Kamikaze Maneuver: Ignore everything, ram biggest enemy
+            let target = enemies.find(e => e instanceof Planet || e instanceof StarkillerBase || e instanceof DeathStar) || enemies[0];
+            if (target) {
+                let dx = target.x - this.x; let dy = target.y - this.y;
+                let dist = Math.hypot(dx, dy);
+                this.vx += (dx / dist) * 0.05;
+                this.vy += (dy / dist) * 0.05;
+            }
+        } else if (this.role === 'escort' && this.escortTarget) {
+            // 2. Guard & Escort Duty
+            this.orbitOffset += 0.005; // Slowly orbit
+            let idealX = this.escortTarget.x + Math.cos(this.orbitOffset) * (this.escortTarget.radius + 150);
+            let idealY = this.escortTarget.y + Math.sin(this.orbitOffset) * (this.escortTarget.radius + 150);
+            
+            let dx = idealX - this.x; let dy = idealY - this.y;
+            this.vx += dx * 0.005;
+            this.vy += dy * 0.005;
+
+        } else if (this.mode === 'B') {
+            // Standard Mode B Logic (Orbiting center)
+            let dx = centerX - this.x; let dy = centerY - this.y;
+            let dist = Math.hypot(dx, dy);
             if (isDefendingOrbit) {
                 if (dist > 0) {
                     this.vx += (dx / dist) * 0.02; 
@@ -252,41 +281,84 @@ class StarDestroyer extends Entity {
                 }
             }
         } else {
-            // --- Tactical Shield-Based Positioning ---
+            // Mode A Logic: Flanking vs Brawling
             let shieldPercent = this.maxShield > 0 ? (this.shield / this.maxShield) : 0;
-            let targetX = centerX;
+            let targetX = (this.team === 'Purple') ? 
+                          (shieldPercent >= 0.4 ? width * 0.75 : width * 0.25) : 
+                          (shieldPercent >= 0.4 ? width * 0.25 : width * 0.75);
             
-            if (this.team === 'Purple') {
-                // Purple's own side is left (25% mark), enemy side is right (75% mark)
-                targetX = (shieldPercent >= 0.4) ? width * 0.75 : width * 0.25;
+            if (this.role === 'flanker' && shieldPercent >= 0.4) {
+                // 1. The "Flanking" Pack
+                let targetY = this.flankY;
+                let dx = targetX - this.x; let dy = targetY - this.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist > 200) {
+                    this.vx += (dx / dist) * 0.01;
+                    this.vy += (dy / dist) * 0.02; // Prioritize Y axis movement early on
+                } else {
+                    this.role = 'brawler'; // Arrived at flank, converge on center
+                }
             } else {
-                // Brown's own side is right (75% mark), enemy side is left (25% mark)
-                targetX = (shieldPercent >= 0.4) ? width * 0.25 : width * 0.75;
+                // Standard tactical push
+                let sideDx = targetX - this.x;
+                this.vx += Math.sign(sideDx) * 0.008;
             }
-    
-            // Apply a smooth horizontal tracking force toward the designated side
-            let sideDx = targetX - this.x;
-            this.vx += Math.sign(sideDx) * 0.008;
         }
 
-        // Avoid crashing into other large capital ships
-        for (let other of allEntities) {
-            if (other === this || other instanceof TIEFighter) continue;
-            let checkDx = this.x - other.x; let checkDy = this.y - other.y;
-            let checkDist = Math.hypot(checkDx, checkDy);
-            let minDist = this.collisionRadius + other.collisionRadius + 20;
-            
-            if (checkDist < minDist && checkDist > 0) {
-                this.vx += (checkDx / checkDist) * 0.1;
-                this.vy += (checkDy / checkDist) * 0.1;
+        // 3. Broadside Maneuvering
+        if (!this.isKamikaze && !this.escortTarget) {
+            let nearestMajorEnemy = enemies.find(e => (e instanceof StarDestroyer || e instanceof DeathStar) && Math.hypot(e.x - this.x, e.y - this.y) < 350);
+            if (nearestMajorEnemy) {
+                let dx = nearestMajorEnemy.x - this.x;
+                let dy = nearestMajorEnemy.y - this.y;
+                let dist = Math.hypot(dx, dy);
+                
+                // Strafe perpendicular
+                let strafeVx = -dy / dist;
+                let strafeVy = dx / dist;
+                
+                this.vx += strafeVx * 0.02;
+                this.vy += strafeVy * 0.02;
+                
+                // Lock visual angle to point side-guns at enemy (perpendicular to movement)
+                let targetAngle = Math.atan2(dy, dx) + Math.PI / 2; 
+                this.broadsideLock = true;
+                
+                // Smoothly rotate to broadside
+                let angleDiff = targetAngle - this.angle;
+                // Normalize angle to -PI to PI for smooth turning
+                angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
+                this.angle += angleDiff * 0.1; 
+            }
+        }
+
+        // Avoid crashing into other large capital ships (Unless Kamikaze)
+        if (!this.isKamikaze) {
+            for (let other of allEntities) {
+                if (other === this || other instanceof TIEFighter) continue;
+                let checkDx = this.x - other.x; let checkDy = this.y - other.y;
+                let checkDist = Math.hypot(checkDx, checkDy);
+                let minDist = this.collisionRadius + other.collisionRadius + 20;
+                
+                if (checkDist < minDist && checkDist > 0) {
+                    this.vx += (checkDx / checkDist) * 0.1;
+                    this.vy += (checkDy / checkDist) * 0.1;
+                }
             }
         }
 
         let speed = Math.hypot(this.vx, this.vy);
-        if (speed > 1.2) { this.vx = (this.vx / speed) * 1.2; this.vy = (this.vy / speed) * 1.2; }
+        if (speed > speedCap) { this.vx = (this.vx / speed) * speedCap; this.vy = (this.vy / speed) * speedCap; }
 
         this.x += this.vx; this.y += this.vy;
-        this.angle = Math.atan2(this.vy, this.vx);
+        
+        // Update angle if not broadsiding
+        if (!this.broadsideLock && speed > 0.1) {
+            let moveAngle = Math.atan2(this.vy, this.vx);
+            let angleDiff = moveAngle - this.angle;
+            angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
+            this.angle += angleDiff * 0.1; // Smooth turning
+        }
 
         if (this.x < 0) this.x = width; if (this.x > width) this.x = 0;
         if (this.y < 0) this.y = height; if (this.y > height) this.y = 0;
@@ -295,7 +367,14 @@ class StarDestroyer extends Entity {
     draw(ctx) {
         ctx.save();
         ctx.translate(this.x, this.y); ctx.rotate(this.angle);
-        ctx.fillStyle = this.color;
+        
+        // Flash red if kamikaze
+        if (this.isKamikaze) {
+            ctx.fillStyle = Date.now() % 400 < 200 ? 'red' : this.color;
+        } else {
+            ctx.fillStyle = this.color;
+        }
+
         ctx.beginPath();
         ctx.moveTo(this.length / 2, 0); 
         ctx.lineTo(-this.length / 2, -this.width / 2);
@@ -313,35 +392,81 @@ class TIEFighter extends Entity {
         this.maxHealth = 20; this.health = 20;
         this.maxShield = 0; this.shield = 0;
         this.collisionRadius = mode === 'A' ? 2 : 6;
-        
         this.weapons.push(createLightWeapon());
 
         this.vx = (Math.random() - 0.5) * 4;
         this.vy = (Math.random() - 0.5) * 4;
+        
+        // AI Roles
+        const roll = Math.random();
+        if (roll < 0.3) this.role = 'interceptor';
+        else if (roll < 0.6) this.role = 'escort';
+        else this.role = 'swarm';
+
+        this.escortTarget = null;
+        this.orbitOffset = Math.random() * Math.PI * 2;
     }
     
-    update(width, height, isDefendingOrbit, centerX, centerY) {
+    update(width, height, isDefendingOrbit, centerX, centerY, allEntities, projectiles) {
         this.regenerateShields();
 
-        let dx = centerX - this.x; let dy = centerY - this.y;
-        let dist = Math.hypot(dx, dy);
+        // 5. Interceptor Screen Logic
+        if (this.role === 'interceptor') {
+            let threat = projectiles.find(p => p.team !== this.team && p.active && p.damage > 20 && Math.hypot(p.x - this.x, p.y - this.y) < 250);
+            if (threat) {
+                // Hunt the projectile
+                let dx = threat.x - this.x; let dy = threat.y - this.y;
+                let dist = Math.hypot(dx, dy);
+                this.vx += (dx / dist) * 0.15;
+                this.vy += (dy / dist) * 0.15;
 
-        if (this.mode === 'B') {
-            let idealDist = 320; 
+                // Intercept/shoot down the projectile if very close
+                if (dist < 30) {
+                    threat.active = false; // Destroy the projectile
+                    this.weapons[0].lastFired = Date.now(); // Put own weapon on cooldown to simulate effort
+                }
+            }
+        } 
+        
+        // Escort Duty
+        if (this.role === 'escort' && !this.escortTarget) {
+            let allies = allEntities.filter(e => e.team === this.team && e.active && (e instanceof StarDestroyer || e instanceof DeathStar || e instanceof StarkillerBase));
+            if (allies.length > 0) this.escortTarget = allies[Math.floor(Math.random() * allies.length)];
+        }
+        if (this.escortTarget && !this.escortTarget.active) this.escortTarget = null;
+
+        if (this.role === 'escort' && this.escortTarget) {
+            this.orbitOffset += 0.02; 
+            let idealX = this.escortTarget.x + Math.cos(this.orbitOffset) * (this.escortTarget.radius || this.escortTarget.length * 1.5);
+            let idealY = this.escortTarget.y + Math.sin(this.orbitOffset) * (this.escortTarget.radius || this.escortTarget.length * 1.5);
+            
+            let dx = idealX - this.x; let dy = idealY - this.y;
+            let dist = Math.hypot(dx, dy);
             if (dist > 0) {
-                let radialForce = (dist - idealDist) * 0.003;
-                this.vx += (dx / dist) * radialForce;
-                this.vy += (dy / dist) * radialForce;
-
-                let direction = isDefendingOrbit ? 1 : -1;
-                this.vx += (-dy / dist) * 0.04 * direction;
-                this.vy += (dx / dist) * 0.04 * direction;
+                this.vx += (dx / dist) * 0.05;
+                this.vy += (dy / dist) * 0.05;
             }
         } else {
-            // Mode A: Deep Space Battle. Swarm towards the center to fight.
-            if (dist > 0) {
-                this.vx += (dx / dist) * 0.015;
-                this.vy += (dy / dist) * 0.015;
+            // Standard swarm movement
+            let dx = centerX - this.x; let dy = centerY - this.y;
+            let dist = Math.hypot(dx, dy);
+
+            if (this.mode === 'B') {
+                let idealDist = 320; 
+                if (dist > 0) {
+                    let radialForce = (dist - idealDist) * 0.003;
+                    this.vx += (dx / dist) * radialForce;
+                    this.vy += (dy / dist) * radialForce;
+
+                    let direction = isDefendingOrbit ? 1 : -1;
+                    this.vx += (-dy / dist) * 0.04 * direction;
+                    this.vy += (dx / dist) * 0.04 * direction;
+                }
+            } else {
+                if (dist > 0) {
+                    this.vx += (dx / dist) * 0.015;
+                    this.vy += (dy / dist) * 0.015;
+                }
             }
         }
         
@@ -352,7 +477,12 @@ class TIEFighter extends Entity {
         if (speed > 4) { this.vx = (this.vx / speed) * 4; this.vy = (this.vy / speed) * 4; }
 
         this.x += this.vx; this.y += this.vy;
-        if (speed > 1) this.angle = Math.atan2(this.vy, this.vx);
+        if (speed > 1) {
+            let moveAngle = Math.atan2(this.vy, this.vx);
+            let angleDiff = moveAngle - this.angle;
+            angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
+            this.angle += angleDiff * 0.2;
+        }
 
         if (this.x < 0) this.x = width; if (this.x > width) this.x = 0;
         if (this.y < 0) this.y = height; if (this.y > height) this.y = 0;
