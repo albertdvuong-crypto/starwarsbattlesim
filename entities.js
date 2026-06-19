@@ -45,9 +45,14 @@ class Entity {
         this.vx = 0; this.vy = 0; this.angle = 0;
         this.weapons = []; this.active = true;
         this.collisionRadius = 10; 
+        
+        // Timers for shield regeneration mechanics
+        this.lastDamageTime = 0;
+        this.lastRegenTime = Date.now();
     }
 
     takeDamage(amount) {
+        this.lastDamageTime = Date.now(); // Record when damage occurs
         if (this.shield > 0) {
             this.shield -= amount;
             if (this.shield < 0) {
@@ -58,6 +63,21 @@ class Entity {
             this.health -= amount;
         }
         if (this.health <= 0) this.active = false;
+    }
+
+    regenerateShields() {
+        let now = Date.now();
+        let elapsed = now - this.lastRegenTime;
+        this.lastRegenTime = now;
+
+        if (this.maxShield > 0 && this.shield < this.maxShield) {
+            // Only regenerate if no damage has been taken for 3 seconds (3000ms)
+            if (now - this.lastDamageTime > 3000) {
+                // Smoothly restores 2% of max shield pool per second
+                let regenAmount = (elapsed / 1000) * (this.maxShield * 0.02);
+                this.shield = Math.min(this.maxShield, this.shield + regenAmount);
+            }
+        }
     }
 
     fireWeapons(enemies, projectilesArray) {
@@ -127,7 +147,9 @@ class Planet extends Entity {
 
         this.lastSpawn = Date.now(); 
     }
-    update() {} 
+    update() {
+        this.regenerateShields();
+    } 
     draw(ctx) {
         ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
@@ -151,7 +173,9 @@ class StarkillerBase extends Entity {
 
         this.lastSpawn = Date.now(); 
     }
-    update() {} 
+    update() {
+        this.regenerateShields();
+    } 
     draw(ctx) {
         ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.color; ctx.fill();
@@ -174,7 +198,9 @@ class DeathStar extends Entity {
 
         this.lastSpawn = Date.now(); 
     }
-    update() {} 
+    update() {
+        this.regenerateShields();
+    } 
     draw(ctx) {
         ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.color; ctx.fill();
@@ -204,8 +230,26 @@ class StarDestroyer extends Entity {
     }
 
     update(width, height, isDefendingOrbit, centerX, centerY, allEntities) {
+        this.regenerateShields();
+
         let dx = centerX - this.x; let dy = centerY - this.y;
         let dist = Math.hypot(dx, dy);
+
+        // --- Tactical Shield-Based Positioning ---
+        let shieldPercent = this.maxShield > 0 ? (this.shield / this.maxShield) : 0;
+        let targetX = centerX;
+
+        if (this.team === 'Purple') {
+            // Purple's own side is left (25% mark), enemy side is right (75% mark)
+            targetX = (shieldPercent >= 0.4) ? width * 0.75 : width * 0.25;
+        } else {
+            // Brown's own side is right (75% mark), enemy side is left (25% mark)
+            targetX = (shieldPercent >= 0.4) ? width * 0.25 : width * 0.75;
+        }
+
+        // Apply a smooth horizontal tracking force toward the designated side
+        let sideDx = targetX - this.x;
+        this.vx += Math.sign(sideDx) * 0.02;
 
         if (this.mode === 'B') {
             if (isDefendingOrbit) {
@@ -283,6 +327,8 @@ class TIEFighter extends Entity {
     }
     
     update(width, height, isDefendingOrbit, centerX, centerY) {
+        this.regenerateShields();
+
         let dx = centerX - this.x; let dy = centerY - this.y;
         let dist = Math.hypot(dx, dy);
 
