@@ -266,7 +266,7 @@ class StarDestroyer extends Entity {
     
             // Apply a smooth horizontal tracking force toward the designated side
             let sideDx = targetX - this.x;
-            this.vx += Math.sign(sideDx) * 0.02;
+            this.vx += Math.sign(sideDx) * 0.008;
         }
 
         // Avoid crashing into other large capital ships
