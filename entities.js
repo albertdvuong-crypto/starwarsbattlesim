@@ -300,8 +300,8 @@ class TIEFighter extends Entity {
         } else {
             // Mode A: Deep Space Battle. Swarm towards the center to fight.
             if (dist > 0) {
-                this.vx += (dx / dist) * 0.007;
-                this.vy += (dy / dist) * 0.007;
+                this.vx += (dx / dist) * 0.015;
+                this.vy += (dy / dist) * 0.015;
             }
         }
         
