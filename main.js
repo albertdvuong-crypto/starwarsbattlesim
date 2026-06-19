@@ -229,11 +229,27 @@ function animate() {
         // If Orbit mode is on, ONLY the defending team surrounds the planet. Attackers fly normally.
         let isDefendingOrbit = (currentMode === 'B' && entity.team === planetTeam);
         
-        entity.update(width, height, isDefendingOrbit, centerX, centerY, entities);
+        // Pass projectiles to update so Interceptors can hunt them
+        entity.update(width, height, isDefendingOrbit, centerX, centerY, entities, projectiles);
+    }
+
+    // KAMIKAZE COLLISIONS (Entity vs Entity Ramming)
+    for (let e1 of entities) {
+        if (!e1.active || !e1.isKamikaze) continue;
+        for (let e2 of entities) {
+            if (e1 !== e2 && e1.team !== e2.team && e2.active) {
+                let dist = Math.hypot(e1.x - e2.x, e1.y - e2.y);
+                if (dist < e1.collisionRadius + e2.collisionRadius) {
+                    e2.takeDamage(e1.maxHealth * 5); // Massive ramming damage
+                    e1.takeDamage(e1.health + e1.shield + 9999); // Destroy the kamikaze ship immediately
+                }
+            }
+        }
     }
 
     // PHASE 2: Targeting, Firing, and Drawing
     for (let entity of entities) {
+        if (!entity.active) continue;
         let enemies = entities.filter(e => e.team !== entity.team);
         entity.fireWeapons(enemies, projectiles);
         entity.draw(ctx);
