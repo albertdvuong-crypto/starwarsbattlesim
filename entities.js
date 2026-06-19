@@ -243,13 +243,31 @@ class StarDestroyer extends Entity {
         let speedCap = this.isKamikaze ? 2.5 : 1.2;
 
         if (this.isKamikaze) {
-            // Kamikaze Maneuver: Ignore everything, ram biggest enemy
-            let target = enemies.find(e => e instanceof Planet || e instanceof StarkillerBase || e instanceof DeathStar) || enemies[0];
+            // Kamikaze Maneuver: Ignore everything, ram nearest large ship
+            let target = null;
+            let minDist = Infinity;
+            
+            // Prioritize major capital ships
+            let largeEnemies = enemies.filter(e => e instanceof Planet || e instanceof StarkillerBase || e instanceof DeathStar || e instanceof StarDestroyer);
+            
+            // Fallback to any enemy if no large ships exist
+            let searchList = largeEnemies.length > 0 ? largeEnemies : enemies;
+
+            for (let e of searchList) {
+                let dist = Math.hypot(e.x - this.x, e.y - this.y);
+                if (dist < minDist) {
+                    minDist = dist;
+                    target = e;
+                }
+            }
+
             if (target) {
                 let dx = target.x - this.x; let dy = target.y - this.y;
                 let dist = Math.hypot(dx, dy);
-                this.vx += (dx / dist) * 0.05;
-                this.vy += (dy / dist) * 0.05;
+                if (dist > 0) {
+                    this.vx += (dx / dist) * 0.05;
+                    this.vy += (dy / dist) * 0.05;
+                }
             }
         } else if (this.role === 'escort' && this.escortTarget) {
             // 2. Guard & Escort Duty
@@ -348,10 +366,8 @@ class StarDestroyer extends Entity {
         }
 
         let speed = Math.hypot(this.vx, this.vy);
-        if (speed > speedCap) { this.vx = (this.vx / speed) * speedCap; this.vy = (this.vy / speed) * speedCap; }
+        if (speed > speedCap) { speed = speedCap; }
 
-        this.x += this.vx; this.y += this.vy;
-        
         // Update angle if not broadsiding
         if (!this.broadsideLock && speed > 0.1) {
             let moveAngle = Math.atan2(this.vy, this.vx);
@@ -359,6 +375,12 @@ class StarDestroyer extends Entity {
             angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
             this.angle += angleDiff * 0.1; // Smooth turning
         }
+
+        // FORCE movement strictly in the direction the ship is pointing
+        this.vx = Math.cos(this.angle) * speed;
+        this.vy = Math.sin(this.angle) * speed;
+
+        this.x += this.vx; this.y += this.vy;
 
         if (this.x < 0) this.x = width; if (this.x > width) this.x = 0;
         if (this.y < 0) this.y = height; if (this.y > height) this.y = 0;
