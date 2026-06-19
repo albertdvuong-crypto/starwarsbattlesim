@@ -226,7 +226,7 @@ class StarDestroyer extends Entity {
         this.regenerateShields();
         
         // 4. Kamikaze Strategy Trigger
-        if (this.health < this.maxHealth * 0.05 && this.shield <= 0) {
+        if (this.health < this.maxHealth * 0.35 && this.shield <= 0) {
             this.isKamikaze = true;
         }
 
